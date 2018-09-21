@@ -1,12 +1,14 @@
 
 # coding: utf-8
 
-# In[30]:
+# In[13]:
 
 
 import numpy as np
 
 print ("Welcome to Eco-LCA")
+
+rcond = None
 
 """Starting Counter for number of processes/network (can be changed with the length of any full list)"""
 
@@ -32,16 +34,14 @@ allPros =[]
 
 allIn = []
 
-"""Starting the Tecnology matrix"""
-
-tec = []
-
 """Environmental impact vector"""
 
-env =[]
+F = []
+
+allEnv = []
 
 
-# In[31]:
+# In[14]:
 
 
 """Prompting the user to input the name of the final demand process/network then name of the output the value of the output"""
@@ -60,13 +60,19 @@ outName = input()
 
 out.append(outName)
 
+dirt = {pro : counter}
+
 print ("Enter value of %s outputed from %s : " % (outName, pro))
 
 outVal = float(input())
 
 """Adding the value of the output of the process"""
 
-tec.append(outVal)
+tec = np.zeros((1,1))
+
+tec[(0,0)] = outVal
+
+F = outVal
 
 """Adding the list made into a list of all lists"""
 
@@ -80,7 +86,9 @@ out = []
 
 print ("Enter the environmental impact of %s : " % pro)
     
-env.append(input())
+env = float(input())
+
+allEnv.append(env) 
 
 check.append(pro)
 
@@ -97,6 +105,8 @@ while level != 0 :
     
     if inName != "":
         
+        counter = counter + 1
+        
         level = level + 1
                
     
@@ -104,27 +114,47 @@ while level != 0 :
     
         print ("Enter value of %s inputed into %s : " % (inName, check[level-2]))
     
-        useVal = float(input())
+        inVal = float(input())
     
         """Asking for the name of the process the input is from"""
     
         print ("Enter name of the process outputing %s :" % inName)
     
         pro = input()
+        
+        dirt[pro] = (counter)
     
         """Asking for the output value of the current process """
     
         print ("Enter value of %s outputed by %s :" % (inName, pro))
         
-        outVal = input()
+        outVal = float(input())
         
-        a = np.zeros(counter,1)
+        print ("Enter value of enveronmental impact of %s :" % pro)
         
-        tec = [a] + tec
+        env = float(input())
+        
+        allEnv = [env] + allEnv
+        
+        A = np.zeros((counter,counter))
+        
+        A[-tec.shape[0]:, -tec.shape[1]:] = tec
+        
+        tec = A
+                
+        tec[(0,0)] = outVal 
+        
+        tec[(0,-dirt[check[level-2]])] = (- inVal)
+        
+        F = np.append(0,F)
+        
+        S = np.linalg.solve(tec,F)
+        
+        curenv = env * S[-counter]
+        
+        print ("The enveronmental impact of %s process is %f " % (pro,curenv))
         
         check.append(pro)
-        
-        counter = counter + 1
         
     else:
         check.pop()
@@ -132,18 +162,18 @@ while level != 0 :
         
 
 
-# In[33]:
+# In[17]:
 
-
-counter
-
-
-# In[35]:
-
-
-a = 0
-
-tec = [a] + tec
 
 tec
+
+allEnv
+
+S
+
+
+# In[18]:
+
+
+curenv
 
