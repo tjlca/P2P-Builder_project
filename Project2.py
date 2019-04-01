@@ -14,17 +14,33 @@ import pandas as pd
 
 """Set up excel file an I-A matrix"""
 
-df = pd.read_excel(r'./Step1.xlsx', sheet_name = 'A380')
+#df = pd.read_excel(r'./Step1.xlsx', sheet_name = 'A380')
 
-A = df.values
+#A = df.values
+
+
+df1 = pd.read_excel(r'./U.xlsx', sheet_name = 'Sheet1')
+df2 = pd.read_excel(r'./V.xlsx', sheet_name = 'Sheet1')
+
+
+U = df1.values
+V = df2.values
+
+A = np.matmul(U,np.linalg.inv((np.transpose(V))))
 
 """ Change length_A to change the size of the A matrix """
 
 length_A = 380
 
+
+
+
+
 index = {}
 
 VC_All = []
+
+equip_All =[]
 
 name = []
 
@@ -153,7 +169,7 @@ while VC != '':
                     
                     unc_in_val = float(input())
                     
-                    unc_new_col[ind_search-1,0] = -unc_in_val
+                    unc_new_col[ind_search-1,0] = unc_in_val
                     
                     print("\nInput to %s VC process from %s created:\n" %  (VC,name[ind_search-1]))
                     print("Enter next input to  %s VC process" % VC)
@@ -186,178 +202,245 @@ while VC != '':
         
 
 L = count
+equip = 'default'
         
+while equip != '':
+  
+    equip = input("Enter the name of equipment scale process or leave blank : ")
+     
+    if equip != '':
         
-equip = input("Enter the name of equipment scale process or leave blank : ")
- 
-if equip != '':
-    
-    count = count + 1
-    
-    print ("For %s : \n" % equip )
-    
-    print("Enter the output flow in Kg of %s to be included in the EQ make matrix diagonal elemenent : " % equip)
-    
-    equ_val = float(input ())
-    
-    new_col = np.zeros((length_A+count-1,1))
-    
-    new_col[length_A+count-2,0] = equ_val
-    
-    print ("Enter uncertainty for the the output flow of %s to be included in the EQ make matrix diagonal elemenent : " % equip)
-    
-    unc_val = float(input())
-    
-    unc_new_col = np.zeros((length_A+count-1,1))
-    
-    unc_new_col[length_A+count-2,0] = unc_val
-    
-    search ='default'
-    
-    print("\n Equipment process %s Created\n"% equip)
-    
-    while search != '':
+        equip_All.append(equip)
         
-        print ("\nEnter search words for inputs from activities in the into equipment scale process %s or leave blank : " % equip)
+        count = count + 1
         
-        search =  input()
+        print ("For %s : \n" % equip )
         
-        if search != '':
+        print("Enter the output flow in Kg of %s to be included in the EQ make matrix diagonal elemenent : " % equip)
+        
+        equ_val = float(input ())
+        
+        new_col = np.zeros((length_A+count-1,1))
+        
+        new_col[length_A+count-2,0] = equ_val
+        
+        print ("Enter uncertainty for the the output flow of %s to be included in the EQ make matrix diagonal elemenent : " % equip)
+        
+        unc_val = float(input())
+        
+        unc_new_col = np.zeros((length_A+count-1,1))
+        
+        unc_new_col[length_A+count-2,0] = unc_val
+        
+        search ='default'
+        
+        print("\n Equipment process %s Created\n"% equip)
+        
+        while search != '':
             
-        
-            matching = [s for s in name if search in s]
-        
-            for i in matching:
-                print ("%d    %s" % (index[i], i))
+            print ("\nEnter search words for inputs from activities in the into equipment scale process %s or leave blank : " % equip)
             
-            print("\nEnter identification number of process to include in the model or leave blank to enter a different search : ")
+            search =  input()
+            
+            if search != '':
+                
+            
+                matching = [s for s in name if search in s]
+            
+                for i in matching:
+                    print ("%d    %s" % (index[i], i))
+                
+                print("\nEnter identification number of process to include in the model or leave blank to enter a different search : ")
+            
+                ind_search = input()
+                
+                
+                if ind_search != '':
+                    
+                    ind_search = int(ind_search)
+                    
+                    print ("\nFor %s into %s:  " % (name[ind_search-1],equip))
+                    
+                    print ("\nEnter input flow (kg) from %s to %s:" %  (name[ind_search-1],equip))
+                    
+                    in_val = float(input())
+                    
+                    if ind_search < length_A:
+                        
+                        print ("Enter price($) for the flow from %s into %s:  " % (name[ind_search-1],equip))
+                        
+                        price = float(input())
+                        
+                        in_val = in_val*price
+                        
+                    new_col[ind_search-1, 0] = -in_val                   
+                    
+                    print ("\nEnter uncertainty for the flow from %s into %s:  " % (name[ind_search-1],equip))
+                    
+                    unc_in_val = float(input())
+                    
+                    unc_new_col[ind_search-1,0] = unc_in_val
+                    
+                    print("\nInput to Equipment process %s created\n" % equip)
+                    print("Enter next input to  %s Equipment process\n" %equip)
+                    
+                    
+        new_row = np.zeros((1,length_A+count-2))
+                    
+        bar_X_bar = np.concatenate((bar_X_bar,new_row),axis=0)
         
-            ind_search = input()
-            
-            
-            if ind_search != '':
-                
-                ind_search = int(ind_search)
-                
-                print ("\nFor %s into %s:  " % (name[ind_search-1],equip))
-                
-                print ("\nEnter input flow (kg) from %s to %s:" %  (name[ind_search-1],equip))
-                
-                in_val = float(input())
-                
-                if ind_search < length_A:
-                    
-                    print ("Enter price($) for the flow from %s into %s:  " % (name[ind_search-1],equip))
-                    
-                    price = float(input())
-                    
-                    in_val = in_val*price
-                    
-                new_col[ind_search-1, 0] = -in_val                   
-                
-                print ("\nEnter uncertainty for the flow from %s into %s:  " % (name[ind_search-1],equip))
-                
-                unc_in_val = float(input())
-                
-                unc_new_col[ind_search-1,0] = -unc_in_val
-                
-                print("\nInput to Equipment process %s created\n" % equip)
-                print("Enter next input to  %s Equipment process\n" %equip)
-                
-                
-    new_row = np.zeros((1,length_A+count-2))
-                
-    bar_X_bar = np.concatenate((bar_X_bar,new_row),axis=0)
-    
-    bar_X_bar = np.concatenate((bar_X_bar,new_col),axis=1)
-    
-    name.append(equip.lower() + " Eq scale sector")
-    
-    index[equip.lower() + " Eq scale sector"] = length_A + count-1
-    
-    unc = np.concatenate((unc, new_row),axis=0)
-    
-    unc = np.concatenate((unc,unc_new_col),axis=1)
-    
-    print("\nVC process %s completed"% equip)    
-    print("Enter to continue\n")
-    input()
-    
-    draw_n.append(equip+' '+str(length_A + count-1) +'\nEquip')
-    draw_v = [x + ['*'] for x in draw_v]
-    draw_v.append(draw_v[0])
-    draw_x = pd.DataFrame(draw_v,draw_n,draw_n)
-    print(tabulate(draw_x, headers='keys', tablefmt='fancy_grid'))
-    
+        bar_X_bar = np.concatenate((bar_X_bar,new_col),axis=1)
+        
+        name.append(equip.lower() + " Eq scale sector")
+        
+        index[equip.lower() + " Eq scale sector"] = length_A + count-1
+        
+        unc = np.concatenate((unc, new_row),axis=0)
+        
+        unc = np.concatenate((unc,unc_new_col),axis=1)
+        
+        print("\nEquipment scale process %s completed"% equip)    
+        print("Enter to continue\n")
+        input()
+        
+        draw_n.append(equip+' '+str(length_A + count-1) +'\nEquip')
+        draw_v = [x + ['*'] for x in draw_v]
+        draw_v.append(draw_v[0])
+        draw_x = pd.DataFrame(draw_v,draw_n,draw_n)
+        print(tabulate(draw_x, headers='keys', tablefmt='fancy_grid'))
+        print("This is the current life cycle model\n")
+        
 
-
+print("\n\n\nPermutation matrix Creation Starts\n")
 
 """A is the Economy matrix
    B is the Value chain matrix
    C is the quipment matrix"""
     
-AB = np.zeros((L,length_A))
+permut_vc_econ = np.zeros((L,length_A-1))
 
-AC = np.zeros((1,length_A))
+"""If equip_All != none or VC_all != none"""
 
-BC = np.zeros((1,L))
+permut_equip_vc = np.zeros((count-L,L)) 
 
 
-"""Constract AB matrix"""
+"""Constract permut_vc_econ matrix"""
 
 k = 0
 
 search = name[0:length_A-1]
 
+
 for j in VC_All:
-    matching = [s for s in search if j.lower() in s]
-            
-    for i in matching:
-        print ("%d    %s" % (index[i], i))
         
-    print("Enter number of process %s that matches or leave blank: " % j)
-            
-    ind_search = input()
-    
-    if ind_search != '':
-        AB[k,int(ind_search)-1] = 1
-    k = k + 1
-
-"""Constract AC matrix"""
-
-search = name[0:length_A-1]
-
-matching = [s for s in search if equip in s]
-            
-for i in matching:
-    print ("%d    %s" % (index[i], i))
         
-print("Enter number of process %s that matches or leave blank: " % equip)
-            
-ind_search = input()
-    
-if ind_search != '':
-    AC[int(ind_search)-1] = 1
-    
-"""Constract BC matrix"""
-
-search = name[length_A-1:length_A+L-1]
-
-matching = [s for s in search if equip in s]
-            
-for i in matching:
-    print ("%d    %s" % (index[i], i))
+        matching = [s for s in search if j.lower() in s]
+                
+        for i in matching:
+            print ("%d    %s" % (index[i], i))
+        print("Starting creation of the Permutation matrices\n")    
+        print("Enter number ID of the the Economy Scale sector that matches with VC process %s or leave blank:\n\n " % j)
+                
+        ind_search = input()
         
-print("Enter number of process %s that matches or leave blank: " % equip)
+        if ind_search != '':
+            permut_vc_econ[k,int(ind_search)-1] = 1
+        k = k + 1
+
+"""Constract permut_equip_econ matrix"""
+
+print("\n")
+if equip_All != " " or equip_All != None  or equip_All != "":
+    permut_equip_econ = np.zeros((count -L,length_A-1))
+
+
+    k = 0
+    for j in equip_All:
+        matching = [s for s in search if j.lower() in s]
+        
+        for i in matching:
+            print ("%d    %s" % (index[i], i))
             
-ind_search = input()
+        print("\n\nEnter number ID of the the Economy Scale sector that matches with Equipment process %s or leave blank \n\n" % j)
+                
+        ind_search = input()
+        
+        if ind_search != '':
+            permut_equip_econ[k,int(ind_search)-1] = 1
+        k= k + 1
     
-if ind_search != '':
-    BC[(0,int(ind_search)-length_A)+1] = 1
+    print("\n")
+    print("\n")
+    """Constract permut_equip_vc matrix"""
+    k = 0
+    search = name[length_A-1:length_A+L-1]
+    for j in equip_All:
+        matching = [s for s in search if j.lower() in s]
+                    
+        for i in matching:
+            print ("%d    %s" % (index[i], i))
+                
+        print("\n\nEnter number ID of the the VC Scale sector that matches with Equipment scale process %s or leave blank): \n\n" % j)
+                    
+        ind_search = input()
+            
+        if ind_search != '':
+            permut_equip_vc[(k,int(ind_search)-length_A)+1] = 1
+            
+        k =k + 1
+    permut_econ_equip = np.transpose(permut_equip_econ)
+
+    permut_vc_equip = np.transpose(permut_equip_vc)
     
-BA = np.transpose(AB)
+permut_econ_vc = np.transpose(permut_vc_econ)
 
-CA = np.transpose(AC)
 
-CB = np.transpose(BC)
+
+X_vc = bar_X_bar[(length_A-1):(length_A-1 + L),(length_A-1):(length_A-1 + L)]
+X_eq = bar_X_bar[len(bar_X_bar)-(count - L):,len(bar_X_bar)-(count - L):]
+
+
+V_vc = X_vc * np.eye(len(X_vc))
+U_vc = (X_vc  - V_vc)*(-1)
+
+
+V_eq = X_eq * np.eye(len(X_eq))
+U_eq = (X_eq  - V_eq)*(-1)
+
+
+price_vector_vc = []
+
+if np.any(permut_econ_vc) == True:
+    for j in VC_All:
+        print("Enter price for %s product flow\n" % j)
+        price = float(input())
+        price_vector_vc.append(price)
+
+price_vector_eq = []
+
+if np.any(permut_econ_equip) == True:
+    for j in equip_All:
+        print("Enter price for %s product flow\n" % j)
+        price = float(input())
+        price_vector_eq.append(price)    
+
+else:
+  price_vector_eq = 0;
+
+vc_eq_cutoff =  bar_X_bar[length_A-1:length_A-1+L,length_A-1+L:len(bar_X_bar)]
+econ_eq_cutoff = bar_X_bar[0:length_A-1,length_A-1+L:len(bar_X_bar)]
+
+econ_vc_cutoff = bar_X_bar[0:length_A-1,length_A-1:length_A-1+L]
+
+
+
+new_V = V - np.matmul(np.matmul(permut_econ_vc,np.multiply(V_vc,price_vector_vc)),permut_vc_econ) - np.matmul(np.matmul(permut_econ_equip,np.multiply(X_eq,price_vector_eq)),permut_equip_econ)
+
+new_V_vc = V_vc - np.matmul(np.matmul(permut_vc_equip,X_eq),permut_equip_vc)
+
+
+new_U = U - np.matmul(np.matmul(permut_econ_vc,np.multiply(U_vc,price_vector_vc)),permut_vc_econ) - np.matmul(econ_vc_cutoff,permut_vc_econ) - np.matmul(econ_eq_cutoff,permut_equip_econ)  - np.matmul(np.matmul(permut_econ_equip,np.multiply(U_eq,price_vector_eq)),permut_equip_econ)  
+
+new_U_vc = U_vc - np.matmul(np.matmul(permut_vc_equip,X_eq),permut_equip_vc) - np.matmul(vc_eq_cutoff,permut_equip_vc)
+
 
