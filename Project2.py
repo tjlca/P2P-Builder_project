@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Wed Jan 16 14:44:57 2019
 @author: Peter Guirguis
@@ -132,7 +131,7 @@ while VC != '':
             if search != '':
                 
             
-                matching = [s for s in name if search in s]
+                matching = [s for s in name if search.lower() in s]
                 
                 
             
@@ -206,7 +205,7 @@ equip = 'default'
         
 while equip != '':
   
-    equip = input("Enter the name of equipment scale process or leave blank : ")
+    equip = input("Enter the name of equipment scale process Number "+str(count-L+1)+" or leave blank : ")
      
     if equip != '':
         
@@ -245,7 +244,7 @@ while equip != '':
             if search != '':
                 
             
-                matching = [s for s in name if search in s]
+                matching = [s for s in name if search.lower() in s]
             
                 for i in matching:
                     print ("%d    %s" % (index[i], i))
@@ -346,10 +345,10 @@ for j in VC_All:
         if ind_search != '':
             permut_vc_econ[k,int(ind_search)-1] = 1
         k = k + 1
+        print("\n \n")
 
 """Constract permut_equip_econ matrix"""
 
-print("\n")
 if equip_All != " " or equip_All != None  or equip_All != "":
     permut_equip_econ = np.zeros((count -L,length_A-1))
 
@@ -368,9 +367,10 @@ if equip_All != " " or equip_All != None  or equip_All != "":
         if ind_search != '':
             permut_equip_econ[k,int(ind_search)-1] = 1
         k= k + 1
-    
-    print("\n")
-    print("\n")
+        print("\n")
+        print("\n")
+
+
     """Constract permut_equip_vc matrix"""
     k = 0
     search = name[length_A-1:length_A+L-1]
@@ -415,6 +415,9 @@ if np.any(permut_econ_vc) == True:
         print("Enter price for %s product flow\n" % j)
         price = float(input())
         price_vector_vc.append(price)
+        
+else:
+    price_vector_vc = 0
 
 price_vector_eq = []
 
@@ -425,7 +428,7 @@ if np.any(permut_econ_equip) == True:
         price_vector_eq.append(price)    
 
 else:
-  price_vector_eq = 0;
+  price_vector_eq = 0
 
 vc_eq_cutoff =  bar_X_bar[length_A-1:length_A-1+L,length_A-1+L:len(bar_X_bar)]
 econ_eq_cutoff = bar_X_bar[0:length_A-1,length_A-1+L:len(bar_X_bar)]
@@ -442,5 +445,4 @@ new_V_vc = V_vc - np.matmul(np.matmul(permut_vc_equip,X_eq),permut_equip_vc)
 new_U = U - np.matmul(np.matmul(permut_econ_vc,np.multiply(U_vc,price_vector_vc)),permut_vc_econ) - np.matmul(econ_vc_cutoff,permut_vc_econ) - np.matmul(econ_eq_cutoff,permut_equip_econ)  - np.matmul(np.matmul(permut_econ_equip,np.multiply(U_eq,price_vector_eq)),permut_equip_econ)  
 
 new_U_vc = U_vc - np.matmul(np.matmul(permut_vc_equip,X_eq),permut_equip_vc) - np.matmul(vc_eq_cutoff,permut_equip_vc)
-
 
