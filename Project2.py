@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Created on Wed Jan 16 14:44:57 2019
 @author: Peter Guirguis
@@ -8,7 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 import numpy as np
-
 import pandas as pd
 
 """Set up excel file an I-A matrix"""
@@ -21,6 +21,9 @@ import pandas as pd
 df1 = pd.read_excel(r'./U.xlsx', sheet_name = 'Sheet1')
 df2 = pd.read_excel(r'./V.xlsx', sheet_name = 'Sheet1')
 
+econ_env = pd.read_csv(r'./M.csv', header = None)
+econ_env = np.transpose(econ_env)
+econ_env = econ_env.drop([379],axis = 0)
 
 U = df1.values
 V = df2.values
@@ -90,6 +93,9 @@ count = 0
 
 search  = 'default'
 
+
+VC_env = [];
+
 while VC != '':
     
     VC = input("\nEnter the name of Number "+str(count+1)+" Value Chain process to be included in the system or leave blank : \n")
@@ -102,7 +108,7 @@ while VC != '':
         
         print ("\nFor %s : \n" % VC )
         
-        print("\nEnter the output flow of %s to be included MOSTLY in the VC make matrix diagonal elemenent in kg: " % VC)
+        print("\nEnter the output flow of %s to be included in physical units: " % VC)
         
         equ_val = float(input ())
         
@@ -110,7 +116,11 @@ while VC != '':
         
         new_col[length_A+count-2,0] = equ_val
         
-        print ("\nEnter uncertainty for the the output flow of %s to be included MOSTLY in the VC make matrix diagonal elemenent : " % VC)
+        print("\nEnter the environmental impact of %s in physical units corressponding to your output flow: " % VC)
+         
+        VC_env.append(float(input()))
+        
+        print ("\nEnter uncertainty for the the output flow of %s : " % VC)
         
         unc_val = float(input())
         
@@ -126,12 +136,12 @@ while VC != '':
             
             print ("\nEnter search terms for activities in the current life cycle model displayed earlier providing inputs into %s process or leave blank.\n Make sure that economy scale sectors are too disaggregated and you cannot search for specific flows. : " % VC)
             
-            search =  input()
+            search =  input().lower()
             
             if search != '':
                 
             
-                matching = [s for s in name if search.lower() in s]
+                matching = [s for s in name if search in s]
                 
                 
             
@@ -150,7 +160,7 @@ while VC != '':
                     
                     print ("For %s into %s:  " % (name[ind_search-1],VC))
                     
-                    print ("\nEnter input flow (kg) from %s into %s:  " % (name[ind_search-1],VC))
+                    print ("\nEnter input flow (physical units) from %s into %s:  " % (name[ind_search-1],VC))
                     
                     in_val = float(input())
                     
@@ -170,7 +180,7 @@ while VC != '':
                     
                     unc_new_col[ind_search-1,0] = unc_in_val
                     
-                    print("\nInput to %s VC process from %s created:\n" %  (VC,name[ind_search-1]))
+                    print("\nInput to %s Value Chain process from %s created:\n" %  (VC,name[ind_search-1]))
                     print("Enter next input to  %s VC process" % VC)
                     
         
@@ -189,7 +199,7 @@ while VC != '':
         
         unc = np.concatenate((unc,unc_new_col),axis=1)
         
-        print("\nVC process %s completed"% VC)
+        print("\nValue Chain process %s completed"% VC)
         
         draw_n.append(VC+' '+str(length_A + count-1) +'\nVC')
         draw_v = [x + ['*'] for x in draw_v]
@@ -202,10 +212,11 @@ while VC != '':
 
 L = count
 equip = 'default'
-        
+
+eq_env = []        
 while equip != '':
   
-    equip = input("Enter the name of equipment scale process Number "+str(count-L+1)+" or leave blank : ")
+    equip = input("Enter the name of equipment scale process or leave blank : ")
      
     if equip != '':
         
@@ -215,7 +226,7 @@ while equip != '':
         
         print ("For %s : \n" % equip )
         
-        print("Enter the output flow in Kg of %s to be included in the EQ make matrix diagonal elemenent : " % equip)
+        print("Enter the output flow in physical units of %s to be included : " % equip)
         
         equ_val = float(input ())
         
@@ -223,7 +234,13 @@ while equip != '':
         
         new_col[length_A+count-2,0] = equ_val
         
-        print ("Enter uncertainty for the the output flow of %s to be included in the EQ make matrix diagonal elemenent : " % equip)
+        
+        print("Ener the environmental impact in physical units o %s for the value of output entered:" % equip)
+        
+        eq_env.append(float(input()))
+        
+        
+        print ("Enter uncertainty for the the output flow of %s to be included : " % equip)
         
         unc_val = float(input())
         
@@ -239,12 +256,11 @@ while equip != '':
             
             print ("\nEnter search words for inputs from activities in the into equipment scale process %s or leave blank : " % equip)
             
-            search =  input()
+            search =  input().lower()
             
-            if search != '':
-                
+            if search != '':                
             
-                matching = [s for s in name if search.lower() in s]
+                matching = [s for s in name if search in s]
             
                 for i in matching:
                     print ("%d    %s" % (index[i], i))
@@ -260,7 +276,7 @@ while equip != '':
                     
                     print ("\nFor %s into %s:  " % (name[ind_search-1],equip))
                     
-                    print ("\nEnter input flow (kg) from %s to %s:" %  (name[ind_search-1],equip))
+                    print ("\nEnter input flow (physical units) from %s to %s:" %  (name[ind_search-1],equip))
                     
                     in_val = float(input())
                     
@@ -337,18 +353,18 @@ for j in VC_All:
                 
         for i in matching:
             print ("%d    %s" % (index[i], i))
-        print("Starting creation of the Permutation matrices\n")    
-        print("Enter number ID of the the Economy Scale sector that matches with VC process %s or leave blank:\n\n " % j)
+        print("\nStarting creation of the Permutation matrices\n")    
+        print("\nEnter number ID of the the Economy Scale sector that matches with VC process %s or leave blank:\n\n " % j)
                 
         ind_search = input()
         
         if ind_search != '':
             permut_vc_econ[k,int(ind_search)-1] = 1
         k = k + 1
-        print("\n \n")
 
 """Constract permut_equip_econ matrix"""
 
+print("\n")
 if equip_All != " " or equip_All != None  or equip_All != "":
     permut_equip_econ = np.zeros((count -L,length_A-1))
 
@@ -367,10 +383,9 @@ if equip_All != " " or equip_All != None  or equip_All != "":
         if ind_search != '':
             permut_equip_econ[k,int(ind_search)-1] = 1
         k= k + 1
-        print("\n")
-        print("\n")
-
-
+    
+    print("\n")
+    print("\n")
     """Constract permut_equip_vc matrix"""
     k = 0
     search = name[length_A-1:length_A+L-1]
@@ -408,27 +423,22 @@ V_eq = X_eq * np.eye(len(X_eq))
 U_eq = (X_eq  - V_eq)*(-1)
 
 
-price_vector_vc = []
+price_vector_vc = np.zeros(L)
 
 if np.any(permut_econ_vc) == True:
     for j in VC_All:
         print("Enter price for %s product flow\n" % j)
         price = float(input())
-        price_vector_vc.append(price)
-        
-else:
-    price_vector_vc = 0
+        price_vector_vc[j] = price
 
-price_vector_eq = []
+price_vector_eq = np.zeros(k)
 
 if np.any(permut_econ_equip) == True:
     for j in equip_All:
         print("Enter price for %s product flow\n" % j)
         price = float(input())
-        price_vector_eq.append(price)    
+        price_vector_eq[j] = price  
 
-else:
-  price_vector_eq = 0
 
 vc_eq_cutoff =  bar_X_bar[length_A-1:length_A-1+L,length_A-1+L:len(bar_X_bar)]
 econ_eq_cutoff = bar_X_bar[0:length_A-1,length_A-1+L:len(bar_X_bar)]
@@ -436,13 +446,132 @@ econ_eq_cutoff = bar_X_bar[0:length_A-1,length_A-1+L:len(bar_X_bar)]
 econ_vc_cutoff = bar_X_bar[0:length_A-1,length_A-1:length_A-1+L]
 
 
+"""
+Disaggregation of Economy Scale and VC Scale Use and Make matrices
+"""
 
-new_V = V - np.matmul(np.matmul(permut_econ_vc,np.multiply(V_vc,price_vector_vc)),permut_vc_econ) - np.matmul(np.matmul(permut_econ_equip,np.multiply(X_eq,price_vector_eq)),permut_equip_econ)
+if V_vc.size >0:
+  new_V = V - np.matmul(np.matmul(permut_econ_vc,np.multiply(V_vc,price_vector_vc)),permut_vc_econ)
+  if X_eq.size >0: 
+      new_V = V - np.matmul(np.matmul(permut_econ_equip,np.multiply(X_eq,price_vector_eq)),permut_equip_econ)
 
-new_V_vc = V_vc - np.matmul(np.matmul(permut_vc_equip,X_eq),permut_equip_vc)
+
+new_V_vc = V_vc
+if X_eq.size > 0:
+  new_V_vc = V_vc - np.matmul(np.matmul(permut_vc_equip,X_eq),permut_equip_vc)
 
 
-new_U = U - np.matmul(np.matmul(permut_econ_vc,np.multiply(U_vc,price_vector_vc)),permut_vc_econ) - np.matmul(econ_vc_cutoff,permut_vc_econ) - np.matmul(econ_eq_cutoff,permut_equip_econ)  - np.matmul(np.matmul(permut_econ_equip,np.multiply(U_eq,price_vector_eq)),permut_equip_econ)  
+
+
+if U_vc.size >0:
+   new_U = U - np.matmul(np.matmul(permut_econ_vc,np.multiply(U_vc,price_vector_vc)),permut_vc_econ) - np.matmul(econ_vc_cutoff,permut_vc_econ)
+   if U_eq.size >0:
+          new_U = new_U - np.matmul(econ_eq_cutoff,permut_equip_econ)  - np.matmul(np.matmul(permut_econ_equip,np.multiply(U_eq,price_vector_eq)),permut_equip_econ)  
 
 new_U_vc = U_vc - np.matmul(np.matmul(permut_vc_equip,X_eq),permut_equip_vc) - np.matmul(vc_eq_cutoff,permut_equip_vc)
 
+
+
+A_new = np.matmul(new_U,np.linalg.inv((np.transpose(new_V))))
+
+IA_new = np.subtract(I,A_new)
+
+""" Disaggregation of Economy Env"""
+
+
+throughput_list = []
+for i in range(0,len(V)): 
+   throughput_list.append(sum(V[i,:]))
+   
+throughput = pd.DataFrame(throughput_list)
+
+"""Finding the total environmental impact"""   
+econ_total_env = np.multiply(econ_env,throughput)
+
+
+
+econ_new_total_env =  econ_total_env
+
+if np.asarray(VC_env).size>0:
+    econ_new_total_env =  econ_total_env - pd.DataFrame(np.matmul(permut_econ_vc,VC_env))
+    if np.asarray(eq_env).size> 0:
+        econ_new_total_env =  econ_new_total_env - pd.DataFrame(np.matmul(permut_econ_equip,eq_env))
+    
+    
+    
+    
+    
+
+throughput_list = []
+for i in range(0,len(V)): 
+   throughput_list.append(sum(new_V[i,:]))
+   
+throughput = pd.DataFrame(throughput_list)
+
+"""Dividing by new throughput"""
+
+econ_env_new = econ_new_total_env/throughput
+
+
+vc_env_new = pd.DataFrame(VC_env) 
+
+""" Disaggregation of VC Env"""
+if np.asarray(eq_env).size> 0:
+    vc_env_new =  pd.DataFrame(VC_env) - np.multiply(permut_vc_equip,eq_env)
+
+
+
+"""Replacing the bar_x_bar components"""
+
+
+X_vc_new = np.transpose(new_V_vc) - new_U_vc
+
+
+bar_X_bar[0:len(A),0:len(A)] = IA_new[0:len(A),0:len(A)]
+bar_X_bar[len(A):len(A)+L,len(A):len(A)+L] = X_vc_new[0:L,0:L]
+
+
+eq_env = pd.DataFrame(eq_env)
+
+frames = [econ_env_new,vc_env_new,eq_env]
+
+total_env = pd.concat(frames,axis =  0).reset_index()
+total_env = total_env.drop(['index'],axis = 1)
+
+
+
+final_dem = pd.DataFrame(np.zeros(len(total_env)))
+"""""Entering Final Demand"""
+print("\nEnter search term for the final demand sector\n")
+
+search = input().lower()
+
+matching = [s for s in name if search in s]
+
+for i in matching:
+   print ("%d    %s" % (index[i], i))
+
+print("\nEnter identification number of process to include in the model or leave blank to enter a different search : ")
+
+ind_search = int(input())
+
+print("\nEnter final demand value : ")
+
+val = float(input())
+
+final_dem.loc[ind_search - 1,:] = val
+
+
+
+draw_n.append(equip+' '+str(length_A + count-1) +'\nEquip')
+draw_v = [x + ['*'] for x in draw_v]
+draw_v.append(draw_v[0])
+draw_x = pd.DataFrame(draw_v,draw_n,draw_n)
+print(tabulate(draw_x, headers='keys', tablefmt='fancy_grid'))
+print("This is the current life cycle model\n")
+
+
+
+
+total_environmental_impact = np.matmul((np.matmul(np.transpose(total_env),np.linalg.inv(bar_X_bar))),final_dem)
+print("\n The total environmental impact is %f kg" % total_environmental_impact)
